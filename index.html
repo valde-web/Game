@@ -320,7 +320,7 @@
         // Initialize Coin Display
         coinDisplay.textContent = coins;
 
-        // Move Player
+            // Move Player
         document.addEventListener('keydown', (e) => {
             if (e.key === 'ArrowLeft' && playerX > 0) {
                 playerX -= 30;
@@ -328,46 +328,47 @@
                 playerX += 30;
             }
             player.style.left = playerX + 'px';
+        });
 
-                // Добавляем переменные для управления тачем
-    let touchStartX = null;
+        // Добавляем переменные для управления тачем
+        let touchStartX = null;
 
-    // Функция для обработки начала касания
-    function handleTouchStart(e) {
-        touchStartX = e.touches[0].clientX;
-    }
-
-    // Функция для обработки движения касания
-    function handleTouchMove(e) {
-        if (touchStartX === null) {
-            return;
+        // Функция для обработки начала касания
+        function handleTouchStart(e) {
+            touchStartX = e.touches[0].clientX;
         }
 
-        const touchX = e.touches[0].clientX;
-        const diffX = touchX - touchStartX;
+        // Функция для обработки движения касания
+        function handleTouchMove(e) {
+            if (touchStartX === null) {
+                return;
+            }
 
-        // Определяем направление движения и двигаем игрока
-        if (diffX > 0 && playerX < gameContainer.offsetWidth - player.offsetWidth) {
-            // Движение вправо
-            playerX += 5; // Можно регулировать скорость движения
-        } else if (diffX < 0 && playerX > 0) {
-            // Движение влево
-            playerX -= 5; // Можно регулировать скорость движения
+            const touchX = e.touches[0].clientX;
+            const diffX = touchX - touchStartX;
+
+            // Определяем направление движения и двигаем игрока
+            if (diffX > 0 && playerX < gameContainer.offsetWidth - player.offsetWidth) {
+                // Движение вправо
+                playerX += 5; // Можно регулировать скорость движения
+            } else if (diffX < 0 && playerX > 0) {
+                // Движение влево
+                playerX -= 5; // Можно регулировать скорость движения
+            }
+
+            player.style.left = playerX + 'px';
+            touchStartX = touchX; // Обновляем начальную позицию
         }
 
-        player.style.left = playerX + 'px';
-        touchStartX = touchX; // Обновляем начальную позицию
-    }
+        // Функция для обработки окончания касания
+        function handleTouchEnd(e) {
+            touchStartX = null;
+        }
 
-    // Функция для обработки окончания касания
-    function handleTouchEnd(e) {
-        touchStartX = null;
-    }
-
-    // Добавляем обработчики событий касания к игровому контейнеру
-    gameContainer.addEventListener('touchstart', handleTouchStart, false);
-    gameContainer.addEventListener('touchmove', handleTouchMove, false);
-    gameContainer.addEventListener('touchend', handleTouchEnd, false);
+        // Добавляем обработчики событий касания к игровому контейнеру
+        gameContainer.addEventListener('touchstart', handleTouchStart, false);
+        gameContainer.addEventListener('touchmove', handleTouchMove, false);
+        gameContainer.addEventListener('touchend', handleTouchEnd, false);
         });
 
         // Check Collision
