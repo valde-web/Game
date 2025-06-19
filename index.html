@@ -366,10 +366,22 @@
         }
 
         // Добавляем обработчики событий касания к игровому контейнеру
-        gameContainer.addEventListener('touchstart', handleTouchStart, false);
-        gameContainer.addEventListener('touchmove', handleTouchMove, false);
-        gameContainer.addEventListener('touchend', handleTouchEnd, false);
-        });
+function checkCollision() {
+            let playerRect = player.getBoundingClientRect();
+
+            for (let obstacle of obstacles) {
+                let obstacleRect = obstacle.getBoundingClientRect();
+
+                // Проверяем, не пересекаются ли прямоугольники
+                if (playerRect.right > obstacleRect.left &&
+                    playerRect.left < obstacleRect.right &&
+                    playerRect.bottom > obstacleRect.top &&
+                    playerRect.top < obstacleRect.bottom) {
+                    gameOver();
+                    return;
+                    }
+                    }
+                    }
 
         // Check Collision
         function checkCollision() {
