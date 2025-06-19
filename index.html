@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Уклоняйся!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #131320;
+            color: white;
+            overflow: hidden;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #game-container {
+            position: relative;
+            width: 400px;
+            height: 600px;
+            background-color: #222;
+            border: 2px solid #444;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        #player {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: #0098cf;
+            border-radius: 50%;
+            transition: left 0.2s ease;
+            z-index: 2;
+        }
+
+        .obstacle {
+            position: absolute;
+            top: 0;
+            width: 30px;
+            height: 30px;
+            background-color: #e74c3c;
+            border-radius: 50%;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            z-index: 2;
+        }
+
+        /* Game Over Overlay */
+        #game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3;
+            border-radius: 10px;
+        }
+
+        #game-over-text {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        #final-score, #high-score {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .game-over-button {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .game-over-button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Menu Styles */
+        #menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 4;
+        }
+
+        #menu-title {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .menu-button {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Shop Styles */
+        #shop-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+
+        #shop-title {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .skin-option {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #666;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .skin-option:hover {
+            background-color: #333;
+        }
+
+        /* Coin display (top right) */
+        #coin-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            z-index: 2;
+        }
+
+        /* Add style for displaying coins in game over screen*/
+        #game-over-coins {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="score">Счет: 0</div>
+    <div id="coin-display">Монеты: <span id="coin-count">0</span></div>
+    <div id="player"></div>
+
+    <div id="game-over-overlay">
+        <div id="game-over-text">Игра окончена!</div>
+        <div id="final-score">Ваш счет: 0</div>
+        <div id="high-score">Рекорд: 0</div>
+        <div id="game-over-coins">Монеты: <span id="game-over-coin-count">0</span></div>
+        <button class="game-over-button" onclick="startGame(currentGameDifficulty)">Играть снова</button>
+        <button class="game-over-button" onclick="openMenu()">Выбрать сложность</button>
+        <button class="game-over-button" onclick="openShop()">Магазин</button>
+    </div>
+
+    <!-- Menu Overlay -->
+    <div id="menu-overlay">
+        <div id="menu-title">Уклоняйся!</div>
+        <button class="menu-button" onclick="startGame('easy')">Легко</button>
+        <button class="menu-button" onclick="startGame('medium')">Средне</button>
+        <button class="menu-button" onclick="startGame('hard')">Сложно</button>
+        <button class="menu-button" onclick="openShop()">Магазин</button>
+    </div>
+
+    <!-- Shop Overlay -->
+    <div id="shop-overlay">
+        <div id="shop-title">Магазин Скинов</div>
+        <div class="skin-option" onclick="buySkin('red')">Красный (10 монет)</div>
+        <div class="skin-option" onclick="buySkin('green')">Зеленый (20 монет)</div>
+        <button class="menu-button" onclick="closeShop()">Назад в Меню</button>
+    </div>
+</div>
+
+<script>
+    // Game Variables
+    let score = 0;
+    let
+highScore = localStorage.getItem('highScore') || 0;
+    let player = document.getElementById('player');
+    let gameContainer = document.getElementById('game-container');
+    let gameOverOverlay = document.getElementById('game-over-overlay');
+    let finalScoreDisplay = document.getElementById('final-score');
+    let highScoreDisplay = document.getElementById('high-score');
+    let scoreDisplay = document.getElementById('score');
+    let menuOverlay = document.getElementById('menu-overlay');
+    let shopOverlay = document.getElementById('shop-overlay');
+    let coinDisplay = document.getElementById('coin-count');
+    let gameOverCoinDisplay = document.getElementById('game-over-coin-count');
+
+    let playerX = 180;
+    let obstacleSpeed = 2;
+    let obstacleIntervalValue = 700; // Default value, will be updated with difficulty
+    let gameInterval;
+    let obstacles = [];
+    let obstacleIntervals = []; // Store setIntervals so they can be cleared
+    let coins = parseInt(localStorage.getItem('coins')) || 0;
+    let currentSkin = '#0098cf';
+    let boughtSkins = ['#0098cf'];
+
+    // Difficulty Levels
+    const difficultySettings = {
+        easy: { speed: 2, interval: 1500 },
+        medium: { speed: 3, interval: 1000 },
+        hard: { speed: 4, interval: 700 }
+    };
+
+    let currentGameDifficulty = 'medium';
+
+    // Initialize Coin Display
+    coinDisplay.textContent = coins;
+
+    // Move Player
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft' && playerX > 0) {
+            playerX -= 30;
+        } else if (e.key === 'ArrowRight' && playerX < gameContainer.offsetWidth - player.offsetWidth) {
+            playerX += 30;
+        }
+        player.style.left = playerX + 'px';
+    });
+
+    // Check Collision
+    function checkCollision() {
+        let playerRect = player.getBoundingClientRect();
+
+        for (let obstacle of obstacles) {
+            let obstacleRect = obstacle.getBoundingClientRect();
+
+            if (!(playerRect.right < obstacleRect.left ||
+                playerRect.left > obstacleRect.right ||
+                playerRect.bottom < obstacleRect.top ||
+                playerRect.top > obstacleRect.bottom)) {
+                gameOver();
+                return;
+            }
+        }
+    }
+
+    // Update Score
+    function updateScore() {
+        score++;
+        scoreDisplay.textContent = 'Счет: ' + score;
+    }
+
+    // Game Over
+    function gameOver() {
+        clearInterval(gameInterval);
+
+        // Clear all existing obstacle intervals
+        obstacleIntervals.forEach(clearInterval);
+        obstacleIntervals = [];
+
+        finalScoreDisplay.textContent = 'Ваш счет: ' + score;
+        coins += score;
+        localStorage.setItem('coins', coins);
+        coinDisplay.textContent = coins;
+        gameOverCoinDisplay.textContent = coins;
+        if (score > highScore) {
+            highScore = score;
+            highScoreDisplay.textContent = 'Рекорд: ' + highScore;
+            localStorage.setItem('highScore', highScore);
+        }
+        gameOverOverlay.style.display = 'flex';
+    }
+
+    // Open Menu
+    function openMenu() {
+        gameOverOverlay.style.display = 'none';
+        menuOverlay.style.display = 'flex';
+    }
+
+    // Open Shop
+    function openShop() {
+        gameOverOverlay.style.display = 'none';
+        menuOverlay.style.display = 'none';
+        shopOverlay.style.display = 'flex';
+    }
+
+    // Close Shop
+    function closeShop() {
+        shopOverlay.style.display = 'none';
+        if (gameOverOverlay.style.display === 'flex') {
+            gameOverOverlay.style.display = 'flex';
+        } else {
+            menuOverlay.style.display = 'flex';
+        }
+    }
+
+   // Start Game
+    function startGame(difficulty) {
+        // Set difficulty-related variables
+        currentGameDifficulty = difficulty;
+        obstacleSpeed = difficultySettings[difficulty].speed;
+        obstacleIntervalValue = difficultySettings[difficulty].interval;  //Update to global variable
+
+        // Hide overlays
+        menuOverlay.style.display = 'none';
+        gameOverOverlay.style.display = 'none';
+        shopOverlay.style.display = 'none';
+
+        // Reset game state
+        score = 0;
+        scoreDisplay.textContent = 'Счет: 0';
+        playerX = 180;
+        player.style.left = playerX + 'px';
+        player.style.backgroundColor = currentSkin;
+
+        // Clear existing obstacles and intervals
+        obstacles.forEach(obstacle => obstacle.remove());
+        obstacles = [];
+
+        obstacleIntervals.forEach(clearInterval); // Clear previous intervals
+        obstacleIntervals = [];
+
+        // Start the game and obstacle creation
+        gameInterval = setInterval(() => {
+            createObstacle(obstacleSpeed); // Pass speed to the obstacle
+        }, obstacleIntervalValue);
+    }
+
+      // Obstacle Creation and Movement (with Closure for Speed)
+    function createObstacle(obstacleSpeed) { //Receive speed argument
+        if (typeof obstacleSpeed !== 'number') {
+            obstacleSpeed = 3;  //Default Speed
+        }
+
+        let obstacle = document.createElement('div');
+        obstacle.classList.add('obstacle');
+        obstacle.style.left = Math.random() * (gameContainer.offsetWidth - 30) + 'px';
+        gameContainer.appendChild(obstacle);
+
+        let obstaclePosition = 0;
+
+        let intervalId = setInterval(() => {
+            obstaclePosition += obstacleSpeed;
+            obstacle.style.top = obstaclePosition + 'px';
+
+            //Collision Detection
+            if (checkCollision(obstacle)) {
+                gameOver();
+                clearInterval(intervalId);
+                return;  //Important: Stop the interval after game over!
+            }
+
+            //Clear Offscreen Objects
+            if (obstaclePosition > gameContainer.offsetHeight) {
+                obstacle.remove();
+                clearInterval(intervalId);
+                obstacles = obstacles.filter(o => o !== obstacle);  //Update the array of obstacles
+            }
+        }, 20);
+
+        obstacles.push(obstacle);  //Keep track of obstacles
+        obstacleIntervals.push(intervalId);  //Keep track of intervals
+    }
+
+    // Buy Skin
+    function buySkin(skin) {
+        let skinPrice;
+
+        switch (skin) {
+            case 'red':
+                skinPrice = 10;
+                break;
+            case 'green':
+                skinPrice = 20;
+                break;
+            default:
+                skinPrice = 0;
+                break;
+        }
+
+        if (coins >= skinPrice) {
+            coins -= skinPrice;
+            localStorage.setItem('coins', coins);
+            coinDisplay.textContent = coins;
+            gameOverCoinDisplay.textContent = coins;
+            boughtSkins.push(skin);
+            player.style.backgroundColor = skin;
+            currentSkin = skin;
+            alert('Скин ' + skin + ' куплен!');
+        } else {
+            alert('Недостаточно монет!');
+        }
+    }
+
+    // Load High Score, Skins and Coins from Local Storage
+    function loadGameData() {
+        let savedHighScore = localStorage.getItem('highScore');
+        if (savedHighScore) {
+            highScore = parseInt(savedHighScore);
+            highScoreDisplay.textContent = 'Рекорд: ' + highScore;
+        }
+
+        let savedCoins = localStorage.getItem('coins');
+        if (savedCoins) {
+            coins = parseInt(savedCoins);
+            coinDisplay.textContent = coins;
+            gameOverCoinDisplay.textContent = coins;
+        }
+    }
+
+    loadGameData();
+    menuOverlay.style.display = 'flex';
+</script>
+</body>
+</html>
